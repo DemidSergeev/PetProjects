@@ -203,6 +203,7 @@ class TimerApp(QMainWindow):
         initialize_db()
         self.load_settings_from_db()
         self.initUI()
+        self.configure_widgets()
         self.load_sounds()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_timer)
@@ -212,16 +213,11 @@ class TimerApp(QMainWindow):
         """ Initialize UI of main window.
         """
         self.setWindowTitle('Timer Application')
-        # Create and configure timer label and pushbuttons
-        self.timer_label = QLabel(self.get_time((self.settings["timer_duration"])), self)
-        self.timer_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        self.settings_button = QPushButton('Settings', self)
+        # Create timer label and pushbuttons
+        self.timer_label = QLabel('TimerApp', self)
+        self.settings_button = QPushButton('&Settings', self)
         self.start_button = QPushButton('Start', self)
-        self.reset_button = QPushButton('Reset', self)
-        # Connect buttons to slots
-        self.settings_button.clicked.connect(self.open_settings)
-        self.start_button.clicked.connect(self.start_timer)
-        self.reset_button.clicked.connect(self.reset_timer)
+        self.reset_button = QPushButton('&Reset', self)
         # Create and configure layouts
         layoutMain = QVBoxLayout()
         layoutMain.addWidget(self.timer_label)
@@ -234,6 +230,16 @@ class TimerApp(QMainWindow):
         container = QWidget()
         container.setLayout(layoutMain)
         self.setCentralWidget(container)
+
+    def configure_widgets(self):
+        # Configure timer label
+        self.timer_label.setText(self.get_time((self.settings["timer_duration"])))
+        self.timer_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        # Connect buttons to slots
+        self.settings_button.clicked.connect(self.open_settings)
+        self.start_button.clicked.connect(self.start_timer)
+        self.start_button.setShortcut('Space')
+        self.reset_button.clicked.connect(self.reset_timer)
 
     def save_settings_to_db(self, db_path=DB_PATH):
         """Save settings to database.
