@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (QApplication,
                              QGridLayout,
                              QWidget)
 from PyQt6.QtCore import QTimer, Qt
+from multislider import MultiSlider
 
 # Specifying base directory, path to database and path to sounds directory.
 BASE_DIR = Path(__file__).resolve().parent
@@ -76,6 +77,8 @@ class SettingsWindow(QDialog):
         # Create control widgets and corresponding labels
         self.duration_label = QLabel('&Timer duration', self)
         self.duration_spinbox = QDoubleSpinBox(self)
+        self.intermediate_multislider_label = QLabel('Add and remove bells', self)
+        self.intermediate_multislider = MultiSlider()
         self.toggle_reset_on_save_label = QLabel('&Reset timer on save', self)
         self.toggle_reset_on_save_checkbox = QCheckBox(self)
         self.toggle_sound_label = QLabel('&Play sound', self)
@@ -95,17 +98,19 @@ class SettingsWindow(QDialog):
         # Add widgets to grid layout
         layout = QGridLayout()
         layout.addWidget(self.duration_label, 0, 0, 1, 2)
-        layout.addWidget(self.duration_spinbox, 0, 2)
-        layout.addWidget(self.toggle_reset_on_save_label, 1, 0, 1, 2)
-        layout.addWidget(self.toggle_reset_on_save_checkbox, 1, 2, 1, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
-        layout.addWidget(self.toggle_sound_label, 2, 0, 1, 2)
-        layout.addWidget(self.toggle_sound_checkbox, 2, 2, 1, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
-        layout.addWidget(self.final_sound_label, 3, 0, 1, 2)
-        layout.addWidget(self.final_sound_button, 3, 2)
-        layout.addWidget(self.intermediate_sound_label, 4, 0, 1, 2)
-        layout.addWidget(self.intermediate_sound_button, 4, 2)
-        layout.addWidget(self.reset_button, 5, 0, 1, 1)
-        layout.addWidget(self.save_settings_button, 5, 2, 1, -1)
+        layout.addWidget(self.duration_spinbox, 0, 2, 1, 2)
+        layout.addWidget(self.intermediate_multislider_label, 1, 0, 1, 2)
+        layout.addWidget(self.intermediate_multislider, 1, 2, 1, 2)
+        layout.addWidget(self.toggle_reset_on_save_label, 2, 0, 1, 2)
+        layout.addWidget(self.toggle_reset_on_save_checkbox, 2, 2, 1, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
+        layout.addWidget(self.toggle_sound_label, 3, 0, 1, 2)
+        layout.addWidget(self.toggle_sound_checkbox, 3, 2, 1, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
+        layout.addWidget(self.final_sound_label, 4, 0, 1, 2)
+        layout.addWidget(self.final_sound_button, 4, 2, 1, 2)
+        layout.addWidget(self.intermediate_sound_label, 5, 0, 1, 2)
+        layout.addWidget(self.intermediate_sound_button, 5, 2, 1, 2)
+        layout.addWidget(self.reset_button, 6, 0, 1, 1)
+        layout.addWidget(self.save_settings_button, 6, 2, 1, 2)
         self.setLayout(layout)
         # Set stylesheet for window
         self.setStyleSheet("""
@@ -113,8 +118,44 @@ class SettingsWindow(QDialog):
                 background-color: violet;
                 color: white;       
             }
+            QLabel {
+                font-size: 11pt;
+            }
+            QPushButton {
+                font-size: 11pt;
+            }
         """)
-    
+
+    def configure_widgets(self):
+        """Set defaults and connect with slots widgets that control settings.
+        """
+        # Configure timer duration spinbox
+        self.duration_spinbox.setMinimum(0)
+        self.duration_spinbox.setMaximum(1e10)
+        self.duration_spinbox.setMinimumWidth(80)
+        self.duration_spinbox.valueChanged.connect(self.set_duration)
+        # Configure toggle reset on save checkbox
+        self.toggle_reset_on_save_checkbox.stateChanged.connect(self.set_reset_on_save)
+        # Configure toggle sound checkbox
+        self.toggle_sound_checkbox.stateChanged.connect(self.set_sound_enabled)
+        # Connect select final sound file button
+        self.final_sound_button.pressed.connect(self.final_open_file_dialog)
+        # Connect select intermediate sound file button
+        self.intermediate_sound_button.pressed.connect(self.intermediate_open_file_dialog)
+        # Connect reset settings button
+        self.reset_button.pressed.connect(self.reset_settings)
+        # Connect save settings button
+        self.save_settings_button.pressed.connect(self.pass_settings_and_exit)
+        # Set widgets according to settings
+        self.load_from_settings()
+
+    def load_from_settings(self):
+        """Set widgets' values and states to what's specified in settings.
+        """
+        self.duration_spinbox.setValue(self.settings["timer_duration"])
+        self.toggle_reset_on_save_checkbox.setChecked(self.settings["reset_timer_on_save"])
+        self.toggle_sound_checkbox.setChecked(self.settings["enable_sound"])
+  
     def set_duration(self, value):
         """Set duration in settings dictionary.
 
@@ -162,36 +203,6 @@ class SettingsWindow(QDialog):
         """
         self.parent().save_settings(self.settings)
         self.close()
-
-    def load_from_settings(self):
-        """Set widgets' values and states to what's specified in settings.
-        """
-        self.duration_spinbox.setValue(self.settings["timer_duration"])
-        self.toggle_reset_on_save_checkbox.setChecked(self.settings["reset_timer_on_save"])
-        self.toggle_sound_checkbox.setChecked(self.settings["enable_sound"])
-
-    def configure_widgets(self):
-        """Set defaults and connect with slots widgets that control settings.
-        """
-        # Configure timer duration spinbox
-        self.duration_spinbox.setMinimum(0)
-        self.duration_spinbox.setMaximum(1e10)
-        self.duration_spinbox.setMinimumWidth(80)
-        self.duration_spinbox.valueChanged.connect(self.set_duration)
-        # Configure toggle reset on save checkbox
-        self.toggle_reset_on_save_checkbox.stateChanged.connect(self.set_reset_on_save)
-        # Configure toggle sound checkbox
-        self.toggle_sound_checkbox.stateChanged.connect(self.set_sound_enabled)
-        # Connect select final sound file button
-        self.final_sound_button.pressed.connect(self.final_open_file_dialog)
-        # Connect select intermediate sound file button
-        self.intermediate_sound_button.pressed.connect(self.intermediate_open_file_dialog)
-        # Connect reset settings button
-        self.reset_button.pressed.connect(self.reset_settings)
-        # Connect save settings button
-        self.save_settings_button.pressed.connect(self.pass_settings_and_exit)
-        # Set widgets according to settings
-        self.load_from_settings()
 
 class TimerApp(QMainWindow):
     """Main window for app based on QMainWindow.
