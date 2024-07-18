@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (QApplication,
                              QVBoxLayout,
                              QHBoxLayout,
                              QGridLayout,
+                             QSizePolicy,
                              QWidget)
 from PyQt6.QtCore import QTimer, Qt
 from multislider import MultiSlider
@@ -68,6 +69,7 @@ class SettingsWindow(QDialog):
         super().__init__(parent)
         self.settings = self.parent().settings
         self.initUI()
+        self.set_layouts()
         self.configure_widgets()
 
     def initUI(self):
@@ -79,7 +81,7 @@ class SettingsWindow(QDialog):
         self.duration_spinbox = QDoubleSpinBox(self)
         self.intermediate_multislider_label = QLabel('Add and remove bells', self)
         self.intermediate_multislider = MultiSlider()
-        self.toggle_reset_on_save_label = QLabel('&Reset timer on save', self)
+        self.toggle_reset_on_save_label = QLabel('&Reset running timer on save', self)
         self.toggle_reset_on_save_checkbox = QCheckBox(self)
         self.toggle_sound_label = QLabel('&Play sound', self)
         self.toggle_sound_checkbox = QCheckBox(self)
@@ -95,23 +97,6 @@ class SettingsWindow(QDialog):
         self.duration_label.setBuddy(self.duration_spinbox)
         self.final_sound_label.setBuddy(self.final_sound_button)
         self.intermediate_sound_label.setBuddy(self.intermediate_sound_button)
-        # Add widgets to grid layout
-        layout = QGridLayout()
-        layout.addWidget(self.duration_label, 0, 0, 1, 2)
-        layout.addWidget(self.duration_spinbox, 0, 2, 1, 2)
-        layout.addWidget(self.intermediate_multislider_label, 1, 0, 1, 2)
-        layout.addWidget(self.intermediate_multislider, 1, 2, 1, 2)
-        layout.addWidget(self.toggle_reset_on_save_label, 2, 0, 1, 2)
-        layout.addWidget(self.toggle_reset_on_save_checkbox, 2, 2, 1, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
-        layout.addWidget(self.toggle_sound_label, 3, 0, 1, 2)
-        layout.addWidget(self.toggle_sound_checkbox, 3, 2, 1, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
-        layout.addWidget(self.final_sound_label, 4, 0, 1, 2)
-        layout.addWidget(self.final_sound_button, 4, 2, 1, 2)
-        layout.addWidget(self.intermediate_sound_label, 5, 0, 1, 2)
-        layout.addWidget(self.intermediate_sound_button, 5, 2, 1, 2)
-        layout.addWidget(self.reset_button, 6, 0, 1, 1)
-        layout.addWidget(self.save_settings_button, 6, 2, 1, 2)
-        self.setLayout(layout)
         # Set stylesheet for window
         self.setStyleSheet("""
             QDialog {
@@ -126,14 +111,70 @@ class SettingsWindow(QDialog):
             }
         """)
 
+    def set_layouts(self):
+        """Add widgets to layouts.
+        """
+        # top group of widgets 
+        duration_layout = QHBoxLayout()
+        duration_layout.addWidget(self.duration_label)
+        duration_layout.addStretch()
+        duration_layout.addWidget(self.duration_spinbox)
+        reset_on_save_layout = QHBoxLayout()
+        reset_on_save_layout.addWidget(self.toggle_reset_on_save_label)
+        reset_on_save_layout.addStretch()
+        reset_on_save_layout.addWidget(self.toggle_reset_on_save_checkbox)
+        multislider_layout = QHBoxLayout()
+        multislider_layout.addWidget(self.intermediate_multislider_label)
+        multislider_layout.addStretch()
+        multislider_layout.addWidget(self.intermediate_multislider)
+        # add top group of layouts to top layout
+        timer_configuration_layout = QVBoxLayout()
+        timer_configuration_layout.addLayout(duration_layout)
+        timer_configuration_layout.addLayout(reset_on_save_layout)
+        timer_configuration_layout.addLayout(multislider_layout)
+        # middle group of widgets
+        play_sound_layout = QHBoxLayout()
+        play_sound_layout.addWidget(self.toggle_sound_label)
+        play_sound_layout.addStretch()
+        play_sound_layout.addWidget(self.toggle_sound_checkbox)
+        final_file_layout = QHBoxLayout()
+        final_file_layout.addWidget(self.final_sound_label)
+        final_file_layout.addStretch()
+        final_file_layout.addWidget(self.final_sound_button)
+        intermediate_file_layout = QHBoxLayout()
+        intermediate_file_layout.addWidget(self.intermediate_sound_label)
+        intermediate_file_layout.addStretch()
+        intermediate_file_layout.addWidget(self.intermediate_sound_button)
+        # add middle group of widgets to middle layout
+        sound_layout = QVBoxLayout()
+        sound_layout.addLayout(play_sound_layout)
+        sound_layout.addLayout(final_file_layout)
+        sound_layout.addLayout(intermediate_file_layout)
+        # bottom layout
+        bottom_buttons_layout = QHBoxLayout()
+        bottom_buttons_layout.addWidget(self.reset_button)
+        bottom_buttons_layout.addStretch()
+        bottom_buttons_layout.addWidget(self.save_settings_button)
+        # combine all groups of layouts into main layout
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(timer_configuration_layout)
+        main_layout.addStretch()
+        main_layout.addLayout(sound_layout)
+        main_layout.addStretch()
+        main_layout.addLayout(bottom_buttons_layout)
+        self.setLayout(main_layout)
+
     def configure_widgets(self):
         """Set defaults and connect with slots widgets that control settings.
         """
         # Configure timer duration spinbox
         self.duration_spinbox.setMinimum(0)
-        self.duration_spinbox.setMaximum(1e10)
-        self.duration_spinbox.setMinimumWidth(80)
+        self.duration_spinbox.setMaximum(1e5)
+        self.duration_spinbox.setDecimals(0)
+        self.duration_spinbox.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self.duration_spinbox.valueChanged.connect(self.set_duration)
+        # Configure multislider
+        self.intermediate_multislider.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
         # Configure toggle reset on save checkbox
         self.toggle_reset_on_save_checkbox.stateChanged.connect(self.set_reset_on_save)
         # Configure toggle sound checkbox
