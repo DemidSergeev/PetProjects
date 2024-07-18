@@ -67,6 +67,8 @@ class SettingsWindow(QDialog):
     """
     def __init__(self, parent):
         super().__init__(parent)
+        # to refer to in styles.qss
+        self.setObjectName("settingsWindow")
         self.settings = self.parent().settings
         self.initUI()
         self.set_layouts()
@@ -97,19 +99,6 @@ class SettingsWindow(QDialog):
         self.duration_label.setBuddy(self.duration_spinbox)
         self.final_sound_label.setBuddy(self.final_sound_button)
         self.intermediate_sound_label.setBuddy(self.intermediate_sound_button)
-        # Set stylesheet for window
-        self.setStyleSheet("""
-            QDialog {
-                background-color: violet;
-                color: white;       
-            }
-            QLabel {
-                font-size: 11pt;
-            }
-            QPushButton {
-                font-size: 11pt;
-            }
-        """)
 
     def set_layouts(self):
         """Add widgets to layouts.
@@ -250,6 +239,8 @@ class TimerApp(QMainWindow):
     """
     def __init__(self):
         super().__init__()
+        # to refer to in styles.qss
+        self.setObjectName("mainWindow")
         self.settings = get_default_settings()
         self.settings_window = None
         initialize_db()
@@ -285,6 +276,7 @@ class TimerApp(QMainWindow):
 
     def configure_widgets(self):
         # Configure timer label
+        self.timer_label.setObjectName("timerLabel")
         self.timer_label.setText(self.get_time((self.settings["timer_duration"])))
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         # Connect buttons to slots
@@ -464,6 +456,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = TimerApp()
     window.show()
-    with open(BASE_DIR / "styles.css", "r") as f: 
-        window.setStyleSheet(f.read())
+    with open(BASE_DIR / "styles.qss", "r") as f: 
+        app.setStyleSheet(f.read())
     sys.exit(app.exec())

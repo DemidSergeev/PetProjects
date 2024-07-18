@@ -1,0 +1,41 @@
+QDialog#settingsWindow {
+    background-color: #5e1185;
+    color: white;
+}
+QDialog#settingsWindow QLabel {
+    font-size: 16px;
+    color: white;
+}
+QDialog#settingsWindow QPushButton {
+    font-size: 14px;
+}
+
+QMainWindow#mainWindow {
+    background-color: #5e1185;
+    color: white;
+}
+QLabel#timerLabel {
+    font-size: 40px;
+    color: white;
+}
+
+/* Stylish QPushButton */
+QPushButton {
+    color: white;
+    background-color: #af2896; /* Purple */
+    border: 2px solid #8b1d73; /* Darker purple */
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #8b1d73; /* Darker purple on hover */
+    border: 2px solid #5e1147; /* Even darker purple */
+}
+
+QPushButton:pressed {
+    background-color: #5e1147; /* Darker purple when pressed */
+    border: 2px solid #3d0e34; /* Darkest purple */
+}

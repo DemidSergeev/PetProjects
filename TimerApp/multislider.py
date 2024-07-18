@@ -6,9 +6,11 @@ from PyQt6.QtWidgets import QApplication, QWidget, QSizePolicy
 class MultiSlider(QWidget):
     LEFT_MARGIN = 10
     RIGHT_MARGIN = 10
-    POINT_DIAMETER = 10
+    POINT_DIAMETER = 13
+    ON_POINT_THRESHOLD = 5
     TRACK_COLOR = QColor(20, 240, 240)
     POINT_COLOR = QColor(255, 255, 255)
+    SELECTED_COLOR = QColor(20, 240, 240)
     TRACK_THICKNESS = 2
     DEFAULT_SIZE = QSize(200, 20)
 
@@ -31,10 +33,13 @@ class MultiSlider(QWidget):
         painter.drawLine(track_line)
 
         # Draw points
-        for point in self.points:
+        for i, point in enumerate(self.points):
             x = self.get_denormalized_x(point)
             y = self.height() / 2
-            painter.setBrush(QBrush(self.POINT_COLOR))
+            if (i == self.selected_point):
+                painter.setBrush(QBrush(self.SELECTED_COLOR))
+            else:
+                painter.setBrush(QBrush(self.POINT_COLOR))
             painter.drawEllipse(QRectF(x - self.POINT_DIAMETER / 2,
                                        y - self.POINT_DIAMETER / 2,
                                        self.POINT_DIAMETER,
@@ -51,6 +56,7 @@ class MultiSlider(QWidget):
         if (event.button() == Qt.MouseButton.LeftButton):
             # If left-clicked on existing point, do nothing
             if (self.selected_point is not None):
+                self.update()
                 return
             # Else add new point
             else:
@@ -84,10 +90,9 @@ class MultiSlider(QWidget):
         Returns:
             i (int): index of close point.
         """
-        threshold = 5
         for i, point in enumerate(self.points):
             px = self.get_denormalized_x(point)
-            if abs(px - x) < threshold:
+            if abs(px - x) < self.ON_POINT_THRESHOLD:
                 return i
         return None
 
